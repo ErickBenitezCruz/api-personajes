@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Personajes de Videojuegos</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #eee; }
+        form { margin-top: 30px; }
+        input, button { margin: 5px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Personajes de Videojuegos</h1>
+    <table id="tabla">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Videojuego</th>
+                <th>Año</th>
+                <th>Desarrollador</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Agregar personaje</h2>
+    <form id="formulario">
+        <input type="text" id="nombre" placeholder="Nombre" required>
+        <input type="text" id="videojuego" placeholder="Videojuego" required>
+        <input type="number" id="año" placeholder="Año de lanzamiento" required>
+        <input type="text" id="desarrollador" placeholder="Desarrollador" required>
+        <button type="submit">Agregar</button>
+    </form>
+
+    <script>
+        const tabla = document.querySelector("#tabla tbody");
+        const formulario = document.getElementById("formulario");
+
+        function cargarPersonajes() {
+            fetch("http://localhost:3000/api/personajes")
+                .then(res => res.json())
+                .then(data => {
+                    tabla.innerHTML = "";
+                    data.forEach(p => {
+                        const fila = document.createElement("tr");
+                        fila.innerHTML = `
+                            <td>${p.id}</td>
+                            <td>${p.nombre}</td>
+                            <td>${p.videojuego}</td>
+                            <td>${p.año_lanzamiento}</td>
+                            <td>${p.desarrollador}</td>
+                            <td><button onclick="eliminar(${p.id})">❌</button></td>
+                        `;
+                        tabla.appendChild(fila);
+                    });
+                });
+        }
+
+        function eliminar(id) {
+            fetch(`http://localhost:3000/api/personajes/${id}`, {
+                method: "DELETE"
+            }).then(() => cargarPersonajes());
+        }
+
+        formulario.addEventListener("submit", e => {
+            e.preventDefault();
+            const nuevo = {
+                nombre: document.getElementById("nombre").value,
+                videojuego: document.getElementById("videojuego").value,
+                año_lanzamiento: parseInt(document.getElementById("año").value),
+                desarrollador: document.getElementById("desarrollador").value
+            };
+            fetch("http://localhost:3000/api/personajes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(nuevo)
+            }).then(() => {
+                formulario.reset();
+                cargarPersonajes();
+            });
+        });
+
+        cargarPersonajes();
+    </script>
+</body>
+</html>
